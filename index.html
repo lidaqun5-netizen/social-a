@@ -1,251 +1,310 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>我的社群 App</title>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <style>
-    :root {
-      --bg-color: #f4f6f8;
-      --card-bg: #ffffff;
-      --text-color: #333333;
-      --primary-color: #1877f2;
-      --border-color: #ccd0d5;
-    }
-    body.dark-mode {
-      --bg-color: #18191a;
-      --card-bg: #242526;
-      --text-color: #e4e6eb;
-      --primary-color: #2d88ff;
-      --border-color: #393a3b;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      margin: 0;
-      padding: 0;
-      transition: background-color 0.3s, color 0.3s;
-    }
-    header {
-      background-color: var(--card-bg);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border-color);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .nav-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    button {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover {
-      opacity: 0.9;
-    }
-    .container {
-      max-width: 600px;
-      margin: 20px auto;
-      padding: 0 15px;
-    }
-    .card {
-      background-color: var(--card-bg);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 15px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      border: 1px solid var(--border-color);
-    }
-    textarea {
-      width: 100%;
-      height: 80px;
-      padding: 8px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      resize: none;
-      box-sizing: border-box;
-    }
-    .post-item {
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 12px;
-      margin-bottom: 12px;
-    }
-    .post-item:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-    }
-    .banner {
-      background: #e7f3ff;
-      color: #050505;
-      padding: 10px;
-      text-align: center;
-      font-size: 14px;
-      border-bottom: 1px solid #bdd7f5;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>看社交</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --text-color: #333;
+            --card-bg: #fff;
+            --border-color: #ddd;
+            --primary-color: #1877f2;
+        }
+        body.dark {
+            --bg-color: #18191a;
+            --text-color: #e4e6eb;
+            --card-bg: #242526;
+            --border-color: #393a3b;
+            --primary-color: #2d88ff;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        h1 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 8px 14px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-radius: 6px;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        textarea, input {
+            width: 100%;
+            box-sizing: border-box;
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .banner {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #ffeeba;
+            display: none;
+            font-size: 14px;
+        }
+        body.dark .banner {
+            background-color: #2c2915;
+            color: #fce883;
+            border-color: #443c13;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+        .view-section {
+            display: none;
+        }
+        .view-section.active {
+            display: block;
+        }
+        .post-item, .chat-item {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .post-item:last-child, .chat-item:last-child {
+            border-bottom: none;
+        }
+    </style>
 </head>
 <body>
 
-  <div id="cookie-banner" class="banner">
-    我們使用 Cookies 來提升您的瀏覽體驗。<button onclick="acceptCookies()" style="margin-left: 10px; padding: 4px 8px; font-size: 12px;">同意</button>
-  </div>
+    <div class="container">
+        <!-- 頂部導覽列 -->
+        <header>
+            <h1>看社交</h1>
+            <div class="btn-group">
+                <button id="themeToggleBtn" onclick="toggleTheme()">🌙 夜晚</button>
+                <button id="authBtn" onclick="handleAuth()">Google 登入</button>
+            </div>
+        </header>
 
-  <header>
-    <h2>🌐 我的社群 App</h2>
-    <div class="nav-actions">
-      <button onclick="toggleDarkMode()">🌙 模式</button>
-      <div id="auth-container">
-        <button id="login-btn" onclick="login()">Google 登入</button>
-        <button id="logout-btn" onclick="logout()" style="display:none; background-color: #e41e3f;">登出</button>
-      </div>
-    </div>
-  </header>
-
-  <div class="container">
-    <!-- 發文區塊 (未登入時可瀏覽但會提示) -->
-    <div class="card">
-      <h3>分享新鮮事</h3>
-      <div id="post-area">
-        <textarea id="post-content" placeholder="在想些什麼呢？（需登入才能發文）"></textarea>
-        <div style="text-align: right; margin-top: 8px;">
-          <button onclick="createPost()">發佈貼文</button>
+        <!-- 防焦慮與護眼健康提醒 Banner -->
+        <div id="wellbeingBanner" class="banner">
+            ⚠️ <strong>溫馨提醒：</strong>您已經瀏覽社交動態滿 20 分鐘了，建議站起來活動一下、眺望遠方保護眼睛！
         </div>
-      </div>
+
+        <!-- 頁籤切換 -->
+        <div class="tabs">
+            <div class="tab-btn active" onclick="switchView('home')">🏠 主頁動態</div>
+            <div class="tab-btn" onclick="switchView('chat')">💬 訊息聊天</div>
+        </div>
+
+        <!-- 主頁檢視 (Home View) -->
+        <div id="homeView" class="view-section active">
+            <div class="card">
+                <h3>建立新貼文</h3>
+                <textarea id="postInput" placeholder="分享你的新鮮事..."></textarea>
+                <button onclick="createPost()">發布貼文</button>
+            </div>
+
+            <div class="card">
+                <h3>動態牆</h3>
+                <div id="postsFeed">
+                    <div class="post-item">
+                        <p><strong>系統公告：</strong> 歡迎來到「看社交」！試著發布第一篇貼文或切換成夜晚模式看看吧。</p>
+                        <small style="color: gray;">剛剛</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天檢視 (Chat View) -->
+        <div id="chatView" class="view-section">
+            <div class="card">
+                <h3>尋找用戶</h3>
+                <input type="text" id="searchInput" placeholder="輸入 @username 搜尋聊天對象...">
+                <button onclick="searchUser()">搜尋</button>
+            </div>
+
+            <div class="card">
+                <h3>聊天列表</h3>
+                <div id="chatList">
+                    <div class="chat-item" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>@system_support (官方小幫手)</span>
+                        <div class="btn-group">
+                            <button onclick="alert('已釘選聊天室')">📌 釘選</button>
+                            <button onclick="alert('已刪除對話')">刪除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- 貼文牆 (未登入也能直接看) -->
-    <div class="card">
-      <h3>動態牆</h3>
-      <div id="posts-container">載入中...</div>
-    </div>
-  </div>
-
-  <script>
-    // TODO: 填入您的 Firebase 設定
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    // Google 登入
-    function login() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch((error) => {
-        alert("登入失敗: " + error.message);
-      });
-    }
-
-    // 登出
-    function logout() {
-      auth.signOut();
-    }
-
-    // 監聽登入狀態
-    auth.onAuthStateChanged((user) => {
-      const loginBtn = document.getElementById('login-btn');
-      const logoutBtn = document.getElementById('logout-btn');
-      
-      if (user) {
-        loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
-        console.log("已登入使用者:", user.displayName);
-      } else {
-        loginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
-        console.log("目前為訪客瀏覽狀態");
-      }
-    });
-
-    // 發表貼文
-    function createPost() {
-      const user = auth.currentUser;
-      if (!user) {
-        alert("請先點擊右上角進行 Google 登入才能發文！");
-        return;
-      }
-      const content = document.getElementById('post-content').value;
-      if (!content.trim()) {
-        alert("內容不能為空！");
-        return;
-      }
-
-      db.collection("posts").add({
-        content: content,
-        author: user.displayName || "匿名使用者",
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        document.getElementById('post-content').value = '';
-        loadPosts();
-      }).catch((error) => {
-        alert("發文失敗: " + error.message);
-      });
-    }
-
-    // 載入貼文 (不需登入即可讀取)
-    function loadPosts() {
-      db.collection("posts").orderBy("createdAt", "desc").get().then((querySnapshot) => {
-        const container = document.getElementById('posts-container');
-        container.innerHTML = '';
-        if (querySnapshot.empty) {
-          container.innerHTML = '<p style="color: gray;">目前沒有任何貼文，趕快來發第一篇吧！</p>';
-          return;
+    <script>
+        /* ================= 1. Cookie 操作函式 ================= */
+        function setCookie(name, value, days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "; expires=" + date.toUTCString();
+            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Strict";
         }
-        querySnapshot.forEach((doc) => {
-          const post = doc.data();
-          const div = document.createElement('div');
-          div.className = 'post-item';
-          div.innerHTML = `
-            <strong>${post.author || '匿名'}</strong>
-            <p style="margin: 6px 0;">${escapeHtml(post.content)}</p>
-          `;
-          container.appendChild(div);
-        });
-      });
-    }
 
-    // 防止 XSS 簡單跳脫
-    function escapeHtml(text) {
-      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
 
-    // 切換深色模式
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
-    }
+        /* ================= 2. 主題切換與 Cookie 初始化 ================= */
+        function initTheme() {
+            const savedTheme = getCookie("theme");
+            const btn = document.getElementById("themeToggleBtn");
+            if (savedTheme === "dark") {
+                document.body.classList.add("dark");
+                btn.textContent = "☀️ 白天";
+            } else {
+                document.body.classList.remove("dark");
+                btn.textContent = "🌙 夜晚";
+            }
+        }
 
-    // Cookie 同意橫幅
-    function acceptCookies() {
-      document.getElementById('cookie-banner').style.display = 'none';
-    }
+        function toggleTheme() {
+            const btn = document.getElementById("themeToggleBtn");
+            if (document.body.classList.contains("dark")) {
+                document.body.classList.remove("dark");
+                setCookie("theme", "light", 30); // 記錄 30 天
+                btn.textContent = "🌙 夜晚";
+            } else {
+                document.body.classList.add("dark");
+                setCookie("theme", "dark", 30); // 記錄 30 天
+                btn.textContent = "☀️ 白天";
+            }
+        }
 
-    // 初始化載入貼文
-    loadPosts();
-  </script>
+        /* ================= 3. 頁面介面與互動邏輯 ================= */
+        function switchView(viewName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+
+            if (viewName === 'home') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('homeView').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('chatView').classList.add('active');
+            }
+        }
+
+        function createPost() {
+            const input = document.getElementById('postInput');
+            const content = input.value.trim();
+            if (!content) {
+                alert('貼文內容不能為空！');
+                return;
+            }
+
+            const feed = document.getElementById('postsFeed');
+            const newPost = document.createElement('div');
+            newPost.className = 'post-item';
+            newPost.innerHTML = `<p><strong>我：</strong> ${escapeHtml(content)}</p><small style="color: gray;">剛剛</small>`;
+            feed.prepend(newPost);
+            input.value = '';
+        }
+
+        function searchUser() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                alert('請輸入要搜尋的帳號');
+                return;
+            }
+            alert(`正在搜尋使用者: ${query} (此處可對接 Firebase 查詢)`);
+        }
+
+        function handleAuth() {
+            const btn = document.getElementById('authBtn');
+            if (btn.textContent === 'Google 登入') {
+                // 這裡預留您的 Firebase Google 登入邏輯
+                btn.textContent = '登出';
+                alert('模擬 Firebase Google 登入成功！');
+            } else {
+                btn.textContent = 'Google 登入';
+                alert('已登出');
+            }
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        /* ================= 4. 初始化執行 ================= */
+        window.onload = function() {
+            // 初始化 Cookie 主題偏好
+            initTheme();
+            
+            // 防焦慮護眼提醒計時器 (測試用 10 秒，正式環境可改為 20 * 60 * 1000)
+            setTimeout(() => {
+                document.getElementById("wellbeingBanner").style.display = "block";
+            }, 10000);
+        };
+    </script>
 </body>
 </html>
