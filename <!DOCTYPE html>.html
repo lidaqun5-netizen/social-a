@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>看社交 - 完整社群平台與即時聊天</title>
+    <title>看社交 - 完整社群平台</title>
     <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore-compat.js"></script>
@@ -37,7 +37,70 @@
             padding: 0;
             transition: background 0.3s, color 0.3s;
         }
-        .container {
+
+        /* 登入遮罩畫面 (未登入時顯示) */
+        #loginOverlay {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--bg-color);
+            z-index: 999;
+        }
+        .login-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 360px;
+        }
+        .login-logo {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px auto;
+            background-color: var(--hover-bg);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .login-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 22px;
+        }
+        .login-card p {
+            margin: 0 0 25px 0;
+            color: gray;
+            font-size: 14px;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .login-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* 主應用程式介面 (登入後顯示) */
+        #appContainer {
+            display: none;
             max-width: 680px;
             margin: 0 auto;
             padding: 20px;
@@ -79,10 +142,6 @@
             color: #fff;
             border: none;
         }
-        .primary-btn:hover {
-            opacity: 0.9;
-            background-color: var(--primary-color);
-        }
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -103,10 +162,6 @@
             font-size: 14px;
             resize: none;
             font-family: inherit;
-        }
-        textarea:focus, input[type="text"]:focus {
-            outline: none;
-            border-color: var(--primary-color);
         }
         .banner {
             background-color: #fff3cd;
@@ -139,7 +194,6 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.2s;
         }
         .tab-btn.active {
             background-color: var(--primary-color);
@@ -152,11 +206,11 @@
         .view-section.active {
             display: block;
         }
-        .post-item, .chat-item, .notification-item {
+        .post-item {
             padding: 12px 0;
             border-bottom: 1px solid var(--border-color);
         }
-        .post-item:last-child, .chat-item:last-child, .notification-item:last-child {
+        .post-item:last-child {
             border-bottom: none;
         }
         .user-profile-header {
@@ -177,7 +231,6 @@
             font-size: 24px;
             font-weight: bold;
         }
-        /* 聊天室專用樣式 */
         .chat-box {
             display: flex;
             flex-direction: column;
@@ -223,39 +276,41 @@
         .chat-input-area input {
             margin: 0;
         }
-        .loading-spinner {
-            text-align: center;
-            color: gray;
-            padding: 20px;
-        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- 頂部導覽列 -->
+    <!-- 未登入時顯示的精美登入畫面 -->
+    <div id="loginOverlay">
+        <div class="login-card">
+            <div class="login-logo">社</div>
+            <h2>歡迎來到看社交</h2>
+            <p>探索社群，與朋友即時互動</p>
+            <button class="login-btn" onclick="handleAuth()">使用 Google 登入</button>
+        </div>
+    </div>
+
+    <!-- 登入後的主應用程式畫面 -->
+    <div id="appContainer" class="container">
         <header>
             <h1>看社交</h1>
             <div class="btn-group">
                 <button id="themeToggleBtn" onclick="toggleTheme()">🌙 夜晚模式</button>
-                <button id="authBtn" onclick="handleAuth()">Google 登入</button>
+                <button onclick="handleAuth()">登出</button>
             </div>
         </header>
 
-        <!-- 防焦慮與護眼健康提醒 Banner -->
         <div id="wellbeingBanner" class="banner">
             <span>⚠️ <strong>溫馨提醒：</strong>您已經瀏覽社交動態滿 20 分鐘了，建議站起來活動一下、眺望遠方保護眼睛！</span>
             <button onclick="dismissBanner()" style="padding: 4px 8px; font-size: 12px;">知道了</button>
         </div>
 
-        <!-- 頁籤切換導覽 -->
         <div class="tabs">
             <div class="tab-btn active" onclick="switchView('home')">🏠 主頁動態</div>
             <div class="tab-btn" onclick="switchView('chat')">💬 訊息聊天</div>
             <div class="tab-btn" onclick="switchView('profile')">👤 個人檔案</div>
         </div>
 
-        <!-- 主頁檢視 (Home View) -->
         <div id="homeView" class="view-section active">
             <div class="card">
                 <h3>建立新貼文</h3>
@@ -268,12 +323,11 @@
             <div class="card">
                 <h3>動態牆</h3>
                 <div id="postsFeed">
-                    <div class="loading-spinner">載入動態中...</div>
+                    <div style="text-align: center; color: gray; padding: 20px;">載入動態中...</div>
                 </div>
             </div>
         </div>
 
-        <!-- 聊天檢視 (Chat View - 包含即時傳送訊息) -->
         <div id="chatView" class="view-section">
             <div class="card">
                 <h3>即時聊天室</h3>
@@ -289,14 +343,13 @@
             </div>
         </div>
 
-        <!-- 個人檔案檢視 (Profile View) -->
         <div id="profileView" class="view-section">
             <div class="card">
                 <div class="user-profile-header">
-                    <div id="profileAvatar" class="avatar-placeholder">訪</div>
+                    <div id="profileAvatar" class="avatar-placeholder">社</div>
                     <div>
-                        <h3 id="profileName" style="margin: 0 0 5px 0;">未登入訪客</h3>
-                        <p id="profileEmail" style="margin: 0; font-size: 13px; color: gray;">請先透過右上角進行 Google 登入</p>
+                        <h3 id="profileName" style="margin: 0 0 5px 0;">社群成員</h3>
+                        <p id="profileEmail" style="margin: 0; font-size: 13px; color: gray;">已驗證 Google 帳號</p>
                     </div>
                 </div>
                 <hr style="border: none; border-top: 1px solid var(--border-color); margin: 15px 0;">
@@ -308,14 +361,13 @@
             <div class="card">
                 <h3>我的貼文紀錄</h3>
                 <div id="userPostsList">
-                    <p style="color: gray; font-size: 14px;">登入後即可查看您發布過的所有貼文內容。</p>
+                    <p style="color: gray; font-size: 14px;">您還沒有發布過任何貼文。</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        /* ================= 1. Firebase 初始化設定 ================= */
         const firebaseConfig = {
             apiKey: "您的真實API_KEY",
             authDomain: "你的專案ID.firebaseapp.com",
@@ -328,12 +380,10 @@
         
         const auth = firebase.auth();
 
-        /* ================= 2. Cookie 儲存與讀取輔助函式 ================= */
         function setCookie(name, value, days) {
             const date = new Date();
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            const expires = "; expires=" + date.toUTCString();
-            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Strict";
+            document.cookie = name + "=" + (value || "") + "; expires=" + date.toUTCString() + "; path=/; SameSite=Strict";
         }
 
         function getCookie(name) {
@@ -347,7 +397,6 @@
             return null;
         }
 
-        /* ================= 3. 主題切換與外觀初始化 ================= */
         function initTheme() {
             const savedTheme = getCookie("theme");
             const btn = document.getElementById("themeToggleBtn");
@@ -373,52 +422,43 @@
             }
         }
 
-        /* ================= 4. Firebase 驗證與使用者狀態 ================= */
         function handleAuth() {
             const user = auth.currentUser;
             if (!user) {
                 const provider = new firebase.auth.GoogleAuthProvider();
-                auth.signInWithPopup(provider)
-                    .then((result) => {
-                        console.log("登入成功", result.user);
-                    })
-                    .catch((error) => {
-                        alert(`登入失敗: ${error.message}`);
-                    });
+                auth.signInWithPopup(provider).catch((error) => {
+                    alert(`登入失敗: ${error.message}`);
+                });
             } else {
-                auth.signOut().then(() => {
-                    console.log("已成功登出");
-                }).catch((error) => {
+                auth.signOut().catch((error) => {
                     console.error("登出發生錯誤", error);
                 });
             }
         }
 
         auth.onAuthStateChanged((user) => {
-            const authBtn = document.getElementById('authBtn');
+            const loginOverlay = document.getElementById('loginOverlay');
+            const appContainer = document.getElementById('appContainer');
             const profileName = document.getElementById('profileName');
             const profileEmail = document.getElementById('profileEmail');
             const profileAvatar = document.getElementById('profileAvatar');
 
             if (user) {
-                authBtn.textContent = '登出';
+                loginOverlay.style.display = 'none';
+                appContainer.style.display = 'block';
                 profileName.textContent = user.displayName || '社群成員';
                 profileEmail.textContent = user.email || '已驗證 Google 帳號';
                 if (user.displayName) {
                     profileAvatar.textContent = user.displayName.charAt(0).toUpperCase();
                 }
-                loadUserPosts(user.uid);
+                loadUserPosts();
             } else {
-                authBtn.textContent = 'Google 登入';
-                profileName.textContent = '未登入訪客';
-                profileEmail.textContent = '請先透過右上角進行 Google 登入';
-                profileAvatar.textContent = '訪';
-                document.getElementById('userPostsList').innerHTML = '<p style="color: gray; font-size: 14px;">登入後即可查看您發布過的所有貼文內容。</p>';
+                loginOverlay.style.display = 'flex';
+                appContainer.style.display = 'none';
             }
             loadPostsFeed();
         });
 
-        /* ================= 5. 頁面切換控制 (View Switching) ================= */
         function switchView(viewName) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
@@ -435,7 +475,6 @@
             }
         }
 
-        /* ================= 6. 動態貼文功能邏輯 ================= */
         function createPost() {
             const input = document.getElementById('postInput');
             const content = input.value.trim();
@@ -446,13 +485,11 @@
 
             const user = auth.currentUser;
             const authorName = user ? user.displayName : '訪客';
-            const feed = document.getElementById('postsFeed');
 
             const newPostObj = {
                 author: authorName,
                 content: content,
-                time: '剛剛',
-                timestamp: new Date().getTime()
+                time: '剛剛'
             };
 
             let posts = JSON.parse(localStorage.getItem('social_posts') || '[]');
@@ -461,6 +498,7 @@
 
             input.value = '';
             loadPostsFeed();
+            loadUserPosts();
         }
 
         function loadPostsFeed() {
@@ -489,11 +527,12 @@
             feed.innerHTML = html;
         }
 
-        function loadUserPosts(uid) {
+        function loadUserPosts() {
             const userList = document.getElementById('userPostsList');
             let posts = JSON.parse(localStorage.getItem('social_posts') || '[]');
             const user = auth.currentUser;
-            const userName = user ? user.displayName : '訪客';
+            if (!user) return;
+            const userName = user.displayName;
 
             let userPosts = posts.filter(p => p.author === userName);
 
@@ -514,15 +553,12 @@
             userList.innerHTML = html;
         }
 
-        /* ================= 7. 即時訊息聊天與傳送功能 ================= */
         function sendMessage() {
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
             if (!text) return;
 
             const chatMessages = document.getElementById('chatMessages');
-            
-            // 建立我的訊息泡泡
             const myBubble = document.createElement('div');
             myBubble.className = 'message-bubble me';
             myBubble.textContent = text;
@@ -531,12 +567,10 @@
             input.value = '';
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            // 儲存至 LocalStorage 保持聊天紀錄
             let chatHistory = JSON.parse(localStorage.getItem('chat_history') || '[]');
             chatHistory.push({ sender: 'me', text: text });
             localStorage.setItem('chat_history', JSON.stringify(chatHistory));
 
-            // 模擬客服或對方自動回覆
             setTimeout(() => {
                 const replyBubble = document.createElement('div');
                 replyBubble.className = 'message-bubble other';
@@ -561,7 +595,6 @@
             
             if (chatHistory.length === 0) return;
 
-            // 保留原本的第一句歡迎詞，然後載入歷史對話
             let html = `<div class="message-bubble other"><strong>官方客服小幫手：</strong> 歡迎來到「看社交」即時聊天室！您可以直接在下方輸入訊息和大家對話。</div>`;
             chatHistory.forEach(msg => {
                 html += `<div class="message-bubble ${msg.sender}">${escapeHtml(msg.text)}</div>`;
@@ -578,7 +611,6 @@
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        /* ================= 8. 頁面初始化與計時器 ================= */
         window.onload = function() {
             initTheme();
             loadPostsFeed();
