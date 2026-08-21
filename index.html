@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>看社交 - 完整社群平台與多元登入</title>
+    <!-- Firebase SDK 9/10 相容版本 (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore-compat.js"></script>
@@ -38,6 +39,7 @@
             transition: background 0.3s, color 0.3s;
         }
 
+        /* 登入遮罩畫面 */
         #loginOverlay {
             display: flex;
             justify-content: center;
@@ -174,6 +176,7 @@
             text-align: center;
         }
 
+        /* 主應用程式內容 */
         #appContainer {
             display: none;
             max-width: 680px;
@@ -355,6 +358,7 @@
 </head>
 <body>
 
+    <!-- 登入介面遮罩 -->
     <div id="loginOverlay">
         <div class="login-card">
             <div class="login-header-title">Player Access</div>
@@ -390,6 +394,7 @@
         </div>
     </div>
 
+    <!-- 主應用程式介面 -->
     <div id="appContainer" class="container">
         <header>
             <h1>看社交</h1>
@@ -410,6 +415,7 @@
             <div class="tab-btn" onclick="switchView('profile')">👤 個人檔案</div>
         </div>
 
+        <!-- 主頁動態 -->
         <div id="homeView" class="view-section active">
             <div class="card">
                 <h3>建立新貼文</h3>
@@ -427,6 +433,7 @@
             </div>
         </div>
 
+        <!-- 訊息聊天 -->
         <div id="chatView" class="view-section">
             <div class="card">
                 <h3>即時聊天室</h3>
@@ -442,6 +449,7 @@
             </div>
         </div>
 
+        <!-- 個人檔案 -->
         <div id="profileView" class="view-section">
             <div class="card">
                 <div class="user-profile-header">
@@ -467,10 +475,15 @@
     </div>
 
     <script>
+        // 已帶入您的真實 Firebase 專案設定
         const firebaseConfig = {
-            apiKey: "您的真實API_KEY",
-            authDomain: "你的專案ID.firebaseapp.com",
-            projectId: "你的專案ID"
+            apiKey: "AIzaSyDnf-e8BYtHKkqMGKLPl6-tCzh9SZHwGIE",
+            authDomain: "my-social-app-74cb5.firebaseapp.com",
+            projectId: "my-social-app-74cb5",
+            storageBucket: "my-social-app-74cb5.firebasestorage.app",
+            messagingSenderId: "296934453383",
+            appId: "1:296934453383:web:89ba9204d283fe37788822",
+            measurementId: "G-T5EE6DRD3E"
         };
         
         if (!firebase.apps.length) {
@@ -514,6 +527,7 @@
             }
         }
 
+        // Google 第三方登入函式
         function handleGoogleLogin() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider).catch(error => {
