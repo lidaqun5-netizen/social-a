@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>看社交</title>
+    <title>看社交 - 完整社群平台與多元登入</title>
+    <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore-compat.js"></script>
+    
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -11,6 +15,9 @@
             --card-bg: #fff;
             --border-color: #ddd;
             --primary-color: #1877f2;
+            --hover-bg: #e4e6eb;
+            --chat-bubble-me: #1877f2;
+            --chat-bubble-other: #e4e6eb;
         }
         body.dark {
             --bg-color: #18191a;
@@ -18,47 +25,197 @@
             --card-bg: #242526;
             --border-color: #393a3b;
             --primary-color: #2d88ff;
+            --hover-bg: #3a3b3c;
+            --chat-bubble-me: #2d88ff;
+            --chat-bubble-other: #3a3b3c;
         }
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             transition: background 0.3s, color 0.3s;
         }
-        .container {
+
+        #loginOverlay {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+        }
+        .login-card {
+            background-color: #1e1f22;
+            color: #dbdee1;
+            border: 1px solid #313338;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            width: 400px;
+            box-sizing: border-box;
+        }
+        .login-header-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #949ba4;
+            margin-bottom: 5px;
+        }
+        .login-header h2 {
+            margin: 0 0 20px 0;
+            font-size: 20px;
+            color: #f2f3f5;
+        }
+        .auth-tabs {
+            display: flex;
+            background-color: #111214;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            color: #949ba4;
+            transition: all 0.2s;
+        }
+        .auth-tab.active {
+            background-color: #35363c;
+            color: #fff;
+        }
+        .auth-form-group {
+            margin-bottom: 15px;
+        }
+        .auth-form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #949ba4;
+            margin-bottom: 8px;
+        }
+        .auth-form-group input {
+            width: 100%;
+            padding: 10px;
+            background-color: #111214;
+            border: 1px solid #1f2023;
+            border-radius: 4px;
+            color: #dbdee1;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .auth-form-group input:focus {
+            outline: none;
+            border-color: #00a8fc;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #5865f2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+        .submit-btn:hover {
+            background-color: #4752c4;
+        }
+        .divider {
+            text-align: center;
+            border-bottom: 1px solid #313338;
+            line-height: 0.1em;
+            margin: 25px 0 20px 0;
+            color: #949ba4;
+            font-size: 12px;
+        }
+        .divider span {
+            background: #1e1f22;
+            padding: 0 10px;
+        }
+        .social-login-group {
+            display: flex;
+            gap: 10px;
+        }
+        .social-btn {
+            flex: 1;
+            padding: 10px;
+            background-color: #2b2d31;
+            border: 1px solid #3f4147;
+            border-radius: 4px;
+            color: #f2f3f5;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .social-btn:hover {
+            background-color: #35363c;
+        }
+        .auth-footer-text {
+            font-size: 11px;
+            color: #949ba4;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        #appContainer {
+            display: none;
             max-width: 680px;
             margin: 0 auto;
+            padding: 20px;
         }
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
             border-bottom: 1px solid var(--border-color);
         }
         h1 {
             margin: 0;
             color: var(--primary-color);
+            font-size: 24px;
         }
         .btn-group {
             display: flex;
             gap: 10px;
+            align-items: center;
         }
-        button {
-            padding: 8px 14px;
+        button, .btn {
+            padding: 8px 16px;
             cursor: pointer;
             border: 1px solid var(--border-color);
             background-color: var(--card-bg);
             color: var(--text-color);
             border-radius: 6px;
             font-weight: 600;
-            transition: opacity 0.2s;
+            font-size: 14px;
+            transition: background-color 0.2s, opacity 0.2s;
         }
-        button:hover {
-            opacity: 0.8;
+        button:hover, .btn:hover {
+            background-color: var(--hover-bg);
+        }
+        .primary-btn {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
         }
         .card {
             background-color: var(--card-bg);
@@ -68,26 +225,30 @@
             margin-bottom: 15px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
-        textarea, input {
+        textarea, input[type="text"] {
             width: 100%;
             box-sizing: border-box;
             background: var(--card-bg);
             color: var(--text-color);
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 10px;
             font-size: 14px;
+            resize: none;
+            font-family: inherit;
         }
         .banner {
             background-color: #fff3cd;
             color: #856404;
-            padding: 12px;
-            border-radius: 6px;
+            padding: 12px 16px;
+            border-radius: 8px;
             margin-bottom: 15px;
             border: 1px solid #ffeeba;
             display: none;
             font-size: 14px;
+            align-items: center;
+            justify-content: space-between;
         }
         body.dark .banner {
             background-color: #2c2915;
@@ -102,10 +263,10 @@
         .tab-btn {
             flex: 1;
             text-align: center;
-            padding: 10px;
+            padding: 12px;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
         }
@@ -120,87 +281,277 @@
         .view-section.active {
             display: block;
         }
-        .post-item, .chat-item {
+        .post-item {
             padding: 12px 0;
             border-bottom: 1px solid var(--border-color);
         }
-        .post-item:last-child, .chat-item:last-child {
+        .post-item:last-child {
             border-bottom: none;
+        }
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .avatar-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .chat-box {
+            display: flex;
+            flex-direction: column;
+            height: 350px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--card-bg);
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+        .message-bubble.other {
+            background-color: var(--chat-bubble-other);
+            color: var(--text-color);
+            align-self: flex-start;
+        }
+        .message-bubble.me {
+            background-color: var(--chat-bubble-me);
+            color: #fff;
+            align-self: flex-end;
+        }
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid var(--border-color);
+            gap: 10px;
+            background: var(--card-bg);
+        }
+        .chat-input-area input {
+            margin: 0;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- 頂部導覽列 -->
+    <div id="loginOverlay">
+        <div class="login-card">
+            <div class="login-header-title">Player Access</div>
+            <div class="login-header">
+                <h2 id="authCardTitle">登入帳號</h2>
+            </div>
+
+            <div class="auth-tabs">
+                <div id="tabLoginBtn" class="auth-tab active" onclick="switchAuthTab('login')">登入</div>
+                <div id="tabRegisterBtn" class="auth-tab" onclick="switchRegisterTab('register')">註冊</div>
+            </div>
+
+            <div class="auth-form-group">
+                <label>電子郵件</label>
+                <input type="text" id="authEmail" placeholder="name@example.com">
+            </div>
+            <div class="auth-form-group">
+                <label>密碼</label>
+                <input type="password" id="authPassword" placeholder="••••••••">
+            </div>
+            <button id="authSubmitBtn" class="submit-btn" onclick="handleEmailAuth()">登入帳號</button>
+
+            <div class="divider"><span>或使用第三方帳號</span></div>
+
+            <div class="social-login-group">
+                <button class="social-btn" onclick="handleGoogleLogin()">Google</button>
+                <button class="social-btn" onclick="alert('Discord 登入串接中...')">Discord</button>
+            </div>
+
+            <div class="auth-footer-text">
+                登入即表示您同意本平台的服務條款與隱私權政策規範。
+            </div>
+        </div>
+    </div>
+
+    <div id="appContainer" class="container">
         <header>
             <h1>看社交</h1>
             <div class="btn-group">
-                <button id="themeToggleBtn" onclick="toggleTheme()">🌙 夜晚</button>
-                <button id="authBtn" onclick="handleAuth()">Google 登入</button>
+                <button id="themeToggleBtn" onclick="toggleTheme()">🌙 夜晚模式</button>
+                <button onclick="handleLogout()">登出</button>
             </div>
         </header>
 
-        <!-- 防焦慮與護眼健康提醒 Banner -->
         <div id="wellbeingBanner" class="banner">
-            ⚠️ <strong>溫馨提醒：</strong>您已經瀏覽社交動態滿 20 分鐘了，建議站起來活動一下、眺望遠方保護眼睛！
+            <span>⚠️ <strong>溫馨提醒：</strong>您已經瀏覽社交動態滿 20 分鐘了，建議站起來活動一下、眺望遠方保護眼睛！</span>
+            <button onclick="dismissBanner()" style="padding: 4px 8px; font-size: 12px;">知道了</button>
         </div>
 
-        <!-- 頁籤切換 -->
         <div class="tabs">
             <div class="tab-btn active" onclick="switchView('home')">🏠 主頁動態</div>
             <div class="tab-btn" onclick="switchView('chat')">💬 訊息聊天</div>
+            <div class="tab-btn" onclick="switchView('profile')">👤 個人檔案</div>
         </div>
 
-        <!-- 主頁檢視 (Home View) -->
         <div id="homeView" class="view-section active">
             <div class="card">
                 <h3>建立新貼文</h3>
-                <textarea id="postInput" placeholder="分享你的新鮮事..."></textarea>
-                <button onclick="createPost()">發布貼文</button>
+                <textarea id="postInput" rows="3" placeholder="在想些什麼呢？與大家分享你的新鮮事..."></textarea>
+                <div style="display: flex; justify-content: flex-end;">
+                    <button class="primary-btn" onclick="createPost()">發布貼文</button>
+                </div>
             </div>
 
             <div class="card">
                 <h3>動態牆</h3>
                 <div id="postsFeed">
-                    <div class="post-item">
-                        <p><strong>系統公告：</strong> 歡迎來到「看社交」！試著發布第一篇貼文或切換成夜晚模式看看吧。</p>
-                        <small style="color: gray;">剛剛</small>
+                    <div style="text-align: center; color: gray; padding: 20px;">載入動態中...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="chatView" class="view-section">
+            <div class="card">
+                <h3>即時聊天室</h3>
+                <div class="chat-box">
+                    <div id="chatMessages" class="chat-messages">
+                        <div class="message-bubble other"><strong>官方客服小幫手：</strong> 歡迎來到「看社交」即時聊天室！您可以直接在下方輸入訊息和大家對話。</div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="輸入要傳送的訊息..." onkeypress="handleChatKeyPress(event)">
+                        <button class="primary-btn" onclick="sendMessage()">傳送</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 聊天檢視 (Chat View) -->
-        <div id="chatView" class="view-section">
+        <div id="profileView" class="view-section">
             <div class="card">
-                <h3>尋找用戶</h3>
-                <input type="text" id="searchInput" placeholder="輸入 @username 搜尋聊天對象...">
-                <button onclick="searchUser()">搜尋</button>
+                <div class="user-profile-header">
+                    <div id="profileAvatar" class="avatar-placeholder">社</div>
+                    <div>
+                        <h3 id="profileName" style="margin: 0 0 5px 0;">社群成員</h3>
+                        <p id="profileEmail" style="margin: 0; font-size: 13px; color: gray;">已驗證帳號</p>
+                    </div>
+                </div>
+                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 15px 0;">
+                <h4>帳號安全與偏好設定</h4>
+                <p style="font-size: 14px; color: gray;">管理您的個人資料、通知偏好與隱私安全選項。</p>
+                <button onclick="alert('設定已儲存')">儲存變更</button>
             </div>
 
             <div class="card">
-                <h3>聊天列表</h3>
-                <div id="chatList">
-                    <div class="chat-item" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>@system_support (官方小幫手)</span>
-                        <div class="btn-group">
-                            <button onclick="alert('已釘選聊天室')">📌 釘選</button>
-                            <button onclick="alert('已刪除對話')">刪除</button>
-                        </div>
-                    </div>
+                <h3>我的貼文紀錄</h3>
+                <div id="userPostsList">
+                    <p style="color: gray; font-size: 14px;">您還沒有發布過任何貼文。</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        /* ================= 1. Cookie 操作函式 ================= */
+        const firebaseConfig = {
+            apiKey: "您的真實API_KEY",
+            authDomain: "你的專案ID.firebaseapp.com",
+            projectId: "你的專案ID"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        const auth = firebase.auth();
+        let currentAuthMode = 'login';
+
+        function switchAuthTab(mode) {
+            currentAuthMode = 'login';
+            document.getElementById('tabLoginBtn').classList.add('active');
+            document.getElementById('tabRegisterBtn').classList.remove('active');
+            document.getElementById('authCardTitle').textContent = '登入帳號';
+            document.getElementById('authSubmitBtn').textContent = '登入帳號';
+        }
+
+        function switchRegisterTab(mode) {
+            currentAuthMode = 'register';
+            document.getElementById('tabRegisterBtn').classList.add('active');
+            document.getElementById('tabLoginBtn').classList.remove('active');
+            document.getElementById('authCardTitle').textContent = '註冊新帳號';
+            document.getElementById('authSubmitBtn').textContent = '註冊新帳號';
+        }
+
+        function handleEmailAuth() {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value.trim();
+
+            if (!email || !password) {
+                alert('請完整輸入電子郵件與密碼！');
+                return;
+            }
+
+            if (currentAuthMode === 'login') {
+                auth.signInWithEmailAndPassword(email, password)
+                    .catch(error => alert(`登入失敗: ${error.message}`));
+            } else {
+                auth.createUserWithEmailAndPassword(email, password)
+                    .catch(error => alert(`註冊失敗: ${error.message}`));
+            }
+        }
+
+        function handleGoogleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => {
+                alert(`Google 登入失敗: ${error.message}`);
+            });
+        }
+
+        function handleLogout() {
+            auth.signOut().catch(error => console.error("登出發生錯誤", error));
+        }
+
+        auth.onAuthStateChanged((user) => {
+            const loginOverlay = document.getElementById('loginOverlay');
+            const appContainer = document.getElementById('appContainer');
+            const profileName = document.getElementById('profileName');
+            const profileEmail = document.getElementById('profileEmail');
+            const profileAvatar = document.getElementById('profileAvatar');
+
+            if (user) {
+                loginOverlay.style.display = 'none';
+                appContainer.style.display = 'block';
+                profileName.textContent = user.displayName || user.email.split('@')[0] || '社群成員';
+                profileEmail.textContent = user.email || '已驗證帳號';
+                if (profileName.textContent) {
+                    profileAvatar.textContent = profileName.textContent.charAt(0).toUpperCase();
+                }
+                loadUserPosts();
+            } else {
+                loginOverlay.style.display = 'flex';
+                appContainer.style.display = 'none';
+            }
+            loadPostsFeed();
+        });
+
         function setCookie(name, value, days) {
             const date = new Date();
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            const expires = "; expires=" + date.toUTCString();
-            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Strict";
+            document.cookie = name + "=" + (value || "") + "; expires=" + date.toUTCString() + "; path=/; SameSite=Strict";
         }
 
         function getCookie(name) {
@@ -214,16 +565,15 @@
             return null;
         }
 
-        /* ================= 2. 主題切換與 Cookie 初始化 ================= */
         function initTheme() {
             const savedTheme = getCookie("theme");
             const btn = document.getElementById("themeToggleBtn");
             if (savedTheme === "dark") {
                 document.body.classList.add("dark");
-                btn.textContent = "☀️ 白天";
+                if (btn) btn.textContent = "☀️ 白天模式";
             } else {
                 document.body.classList.remove("dark");
-                btn.textContent = "🌙 夜晚";
+                if (btn) btn.textContent = "🌙 夜晚模式";
             }
         }
 
@@ -231,16 +581,15 @@
             const btn = document.getElementById("themeToggleBtn");
             if (document.body.classList.contains("dark")) {
                 document.body.classList.remove("dark");
-                setCookie("theme", "light", 30); // 記錄 30 天
-                btn.textContent = "🌙 夜晚";
+                setCookie("theme", "light", 30);
+                btn.textContent = "🌙 夜晚模式";
             } else {
                 document.body.classList.add("dark");
-                setCookie("theme", "dark", 30); // 記錄 30 天
-                btn.textContent = "☀️ 白天";
+                setCookie("theme", "dark", 30);
+                btn.textContent = "☀️ 白天模式";
             }
         }
 
-        /* ================= 3. 頁面介面與互動邏輯 ================= */
         function switchView(viewName) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
@@ -248,9 +597,12 @@
             if (viewName === 'home') {
                 document.querySelectorAll('.tab-btn')[0].classList.add('active');
                 document.getElementById('homeView').classList.add('active');
-            } else {
+            } else if (viewName === 'chat') {
                 document.querySelectorAll('.tab-btn')[1].classList.add('active');
                 document.getElementById('chatView').classList.add('active');
+            } else if (viewName === 'profile') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('profileView').classList.add('active');
             }
         }
 
@@ -258,51 +610,146 @@
             const input = document.getElementById('postInput');
             const content = input.value.trim();
             if (!content) {
-                alert('貼文內容不能為空！');
+                alert('貼文內容不能為空白！');
                 return;
             }
 
-            const feed = document.getElementById('postsFeed');
-            const newPost = document.createElement('div');
-            newPost.className = 'post-item';
-            newPost.innerHTML = `<p><strong>我：</strong> ${escapeHtml(content)}</p><small style="color: gray;">剛剛</small>`;
-            feed.prepend(newPost);
+            const user = auth.currentUser;
+            const authorName = user ? (user.displayName || user.email.split('@')[0]) : '訪客';
+
+            const newPostObj = {
+                author: authorName,
+                content: content,
+                time: '剛剛'
+            };
+
+            let posts = JSON.parse(localStorage.getItem('social_posts') || '[]');
+            posts.unshift(newPostObj);
+            localStorage.setItem('social_posts', JSON.stringify(posts));
+
             input.value = '';
+            loadPostsFeed();
+            loadUserPosts();
         }
 
-        function searchUser() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) {
-                alert('請輸入要搜尋的帳號');
+        function loadPostsFeed() {
+            const feed = document.getElementById('postsFeed');
+            let posts = JSON.parse(localStorage.getItem('social_posts') || '[]');
+
+            if (posts.length === 0) {
+                feed.innerHTML = `
+                    <div class="post-item">
+                        <p><strong>系統公告：</strong> 歡迎來到「看社交」！試著發布第一篇貼文或切換成夜晚模式看看吧。</p>
+                        <small style="color: gray;">剛剛</small>
+                    </div>
+                `;
                 return;
             }
-            alert(`正在搜尋使用者: ${query} (此處可對接 Firebase 查詢)`);
+
+            let html = '';
+            posts.forEach(post => {
+                html += `
+                    <div class="post-item">
+                        <p><strong>${escapeHtml(post.author)}：</strong> ${escapeHtml(post.content)}</p>
+                        <small style="color: gray;">${post.time}</small>
+                    </div>
+                `;
+            });
+            feed.innerHTML = html;
         }
 
-        function handleAuth() {
-            const btn = document.getElementById('authBtn');
-            if (btn.textContent === 'Google 登入') {
-                // 這裡預留您的 Firebase Google 登入邏輯
-                btn.textContent = '登出';
-                alert('模擬 Firebase Google 登入成功！');
-            } else {
-                btn.textContent = 'Google 登入';
-                alert('已登出');
+        function loadUserPosts() {
+            const userList = document.getElementById('userPostsList');
+            let posts = JSON.parse(localStorage.getItem('social_posts') || '[]');
+            const user = auth.currentUser;
+            if (!user) return;
+            const userName = user.displayName || user.email.split('@')[0];
+
+            let userPosts = posts.filter(p => p.author === userName);
+
+            if (userPosts.length === 0) {
+                userList.innerHTML = '<p style="color: gray; font-size: 14px;">您還沒有發布過任何貼文。</p>';
+                return;
             }
+
+            let html = '';
+            userPosts.forEach(post => {
+                html += `
+                    <div class="post-item">
+                        <p>${escapeHtml(post.content)}</p>
+                        <small style="color: gray;">發布於：${post.time}</small>
+                    </div>
+                `;
+            });
+            userList.innerHTML = html;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+            const myBubble = document.createElement('div');
+            myBubble.className = 'message-bubble me';
+            myBubble.textContent = text;
+            chatMessages.appendChild(myBubble);
+
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            let chatHistory = JSON.parse(localStorage.getItem('chat_history') || '[]');
+            chatHistory.push({ sender: 'me', text: text });
+            localStorage.setItem('chat_history', JSON.stringify(chatHistory));
+
+            setTimeout(() => {
+                const replyBubble = document.createElement('div');
+                replyBubble.className = 'message-bubble other';
+                replyBubble.textContent = `客服回覆：我已經收到您的訊息「${text}」囉！`;
+                chatMessages.appendChild(replyBubble);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                chatHistory.push({ sender: 'other', text: replyBubble.textContent });
+                localStorage.setItem('chat_history', JSON.stringify(chatHistory));
+            }, 1000);
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function loadChatHistory() {
+            const chatMessages = document.getElementById('chatMessages');
+            let chatHistory = JSON.parse(localStorage.getItem('chat_history') || '[]');
+            
+            if (chatHistory.length === 0) return;
+
+            let html = `<div class="message-bubble other"><strong>官方客服小幫手：</strong> 歡迎來到「看社交」即時聊天室！您可以直接在下方輸入訊息和大家對話。</div>`;
+            chatHistory.forEach(msg => {
+                html += `<div class="message-bubble ${msg.sender}">${escapeHtml(msg.text)}</div>`;
+            });
+            chatMessages.innerHTML = html;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function dismissBanner() {
+            document.getElementById("wellbeingBanner").style.display = "none";
         }
 
         function escapeHtml(text) {
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        /* ================= 4. 初始化執行 ================= */
         window.onload = function() {
-            // 初始化 Cookie 主題偏好
             initTheme();
+            loadPostsFeed();
+            loadChatHistory();
             
-            // 防焦慮護眼提醒計時器 (測試用 10 秒，正式環境可改為 20 * 60 * 1000)
             setTimeout(() => {
-                document.getElementById("wellbeingBanner").style.display = "block";
+                const banner = document.getElementById("wellbeingBanner");
+                if (banner) banner.style.display = "flex";
             }, 10000);
         };
     </script>
