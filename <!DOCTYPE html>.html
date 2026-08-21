@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>看社交 - 完整社群平台</title>
+    <title>看社交 - 完整社群平台與多元登入</title>
     <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore-compat.js"></script>
@@ -38,7 +38,7 @@
             transition: background 0.3s, color 0.3s;
         }
 
-        /* 登入遮罩畫面 (未登入時顯示) */
+        /* 質感登入遮罩畫面 */
         #loginOverlay {
             display: flex;
             justify-content: center;
@@ -48,57 +48,135 @@
             position: fixed;
             top: 0;
             left: 0;
-            background-color: var(--bg-color);
+            background-color: rgba(0, 0, 0, 0.6);
             z-index: 999;
         }
         .login-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            padding: 40px 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 360px;
-        }
-        .login-logo {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 20px auto;
-            background-color: var(--hover-bg);
+            background-color: #1e1f22;
+            color: #dbdee1;
+            border: 1px solid #313338;
+            padding: 30px;
             border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            width: 400px;
+            box-sizing: border-box;
+        }
+        .login-header-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #949ba4;
+            margin-bottom: 5px;
+        }
+        .login-header h2 {
+            margin: 0 0 20px 0;
+            font-size: 20px;
+            color: #f2f3f5;
+        }
+        /* 登入 / 註冊 切換分頁 */
+        .auth-tabs {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            font-weight: bold;
-            color: var(--primary-color);
+            background-color: #111214;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
         }
-        .login-card h2 {
-            margin: 0 0 10px 0;
-            font-size: 22px;
-        }
-        .login-card p {
-            margin: 0 0 25px 0;
-            color: gray;
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
             font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            color: #949ba4;
+            transition: all 0.2s;
         }
-        .login-btn {
+        .auth-tab.active {
+            background-color: #35363c;
+            color: #fff;
+        }
+        .auth-form-group {
+            margin-bottom: 15px;
+        }
+        .auth-form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #949ba4;
+            margin-bottom: 8px;
+        }
+        .auth-form-group input {
+            width: 100%;
+            padding: 10px;
+            background-color: #111214;
+            border: 1px solid #1f2023;
+            border-radius: 4px;
+            color: #dbdee1;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .auth-form-group input:focus {
+            outline: none;
+            border-color: #00a8fc;
+        }
+        .submit-btn {
             width: 100%;
             padding: 12px;
-            background-color: var(--primary-color);
+            background-color: #5865f2;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 4px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s;
+            margin-top: 10px;
+            transition: background-color 0.2s;
         }
-        .login-btn:hover {
-            opacity: 0.9;
+        .submit-btn:hover {
+            background-color: #4752c4;
+        }
+        .divider {
+            text-align: center;
+            border-bottom: 1px solid #313338;
+            line-height: 0.1em;
+            margin: 25px 0 20px 0;
+            color: #949ba4;
+            font-size: 12px;
+        }
+        .divider span {
+            background: #1e1f22;
+            padding: 0 10px;
+        }
+        .social-login-group {
+            display: flex;
+            gap: 10px;
+        }
+        .social-btn {
+            flex: 1;
+            padding: 10px;
+            background-color: #2b2d31;
+            border: 1px solid #3f4147;
+            border-radius: 4px;
+            color: #f2f3f5;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .social-btn:hover {
+            background-color: #35363c;
+        }
+        .auth-footer-text {
+            font-size: 11px;
+            color: #949ba4;
+            margin-top: 15px;
+            text-align: center;
         }
 
-        /* 主應用程式介面 (登入後顯示) */
+        /* 主應用程式介面 (登入後解鎖) */
         #appContainer {
             display: none;
             max-width: 680px;
@@ -280,23 +358,52 @@
 </head>
 <body>
 
-    <!-- 未登入時顯示的精美登入畫面 -->
+    <!-- 質感登入/註冊模態框 -->
     <div id="loginOverlay">
         <div class="login-card">
-            <div class="login-logo">社</div>
-            <h2>歡迎來到看社交</h2>
-            <p>探索社群，與朋友即時互動</p>
-            <button class="login-btn" onclick="handleAuth()">使用 Google 登入</button>
+            <div class="login-header-title">Player Access</div>
+            <div class="login-header">
+                <h2 id="authCardTitle">登入帳號</h2>
+            </div>
+
+            <!-- 切換分頁 -->
+            <div class="auth-tabs">
+                <div id="tabLoginBtn" class="auth-tab active" onclick="switchAuthTab('login')">登入</div>
+                <div id="tabRegisterBtn" class="auth-tab" onclick="switchRegisterTab('register')">註冊</div>
+            </div>
+
+            <!-- 表單內容 -->
+            <div class="auth-form-group">
+                <label>電子郵件</label>
+                <input type="text" id="authEmail" placeholder="name@example.com">
+            </div>
+            <div class="auth-form-group">
+                <label>密碼</label>
+                <input type="password" id="authPassword" placeholder="••••••••">
+            </div>
+            <button id="authSubmitBtn" class="submit-btn" onclick="handleEmailAuth()">登入帳號</button>
+
+            <div class="divider"><span>或使用第三方帳號</span></div>
+
+            <!-- 第三方登入按鈕 -->
+            <div class="social-login-group">
+                <button class="social-btn" onclick="handleGoogleLogin()">Google</button>
+                <button class="social-btn" onclick="alert('Discord 登入串接中...')">Discord</button>
+            </div>
+
+            <div class="auth-footer-text">
+                登入即表示您同意本平台的服務條款與隱私權政策規範。
+            </div>
         </div>
     </div>
 
-    <!-- 登入後的主應用程式畫面 -->
+    <!-- 登入後的主應用程式畫面 (800行完整功能) -->
     <div id="appContainer" class="container">
         <header>
             <h1>看社交</h1>
             <div class="btn-group">
                 <button id="themeToggleBtn" onclick="toggleTheme()">🌙 夜晚模式</button>
-                <button onclick="handleAuth()">登出</button>
+                <button onclick="handleLogout()">登出</button>
             </div>
         </header>
 
@@ -349,7 +456,7 @@
                     <div id="profileAvatar" class="avatar-placeholder">社</div>
                     <div>
                         <h3 id="profileName" style="margin: 0 0 5px 0;">社群成員</h3>
-                        <p id="profileEmail" style="margin: 0; font-size: 13px; color: gray;">已驗證 Google 帳號</p>
+                        <p id="profileEmail" style="margin: 0; font-size: 13px; color: gray;">已驗證帳號</p>
                     </div>
                 </div>
                 <hr style="border: none; border-top: 1px solid var(--border-color); margin: 15px 0;">
@@ -379,6 +486,75 @@
         }
         
         const auth = firebase.auth();
+        let currentAuthMode = 'login'; // 'login' 或 'register'
+
+        function switchAuthTab(mode) {
+            currentAuthMode = 'login';
+            document.getElementById('tabLoginBtn').classList.add('active');
+            document.getElementById('tabRegisterBtn').classList.remove('active');
+            document.getElementById('authCardTitle').textContent = '登入帳號';
+            document.getElementById('authSubmitBtn').textContent = '登入帳號';
+        }
+
+        function switchRegisterTab(mode) {
+            currentAuthMode = 'register';
+            document.getElementById('tabRegisterBtn').classList.add('active');
+            document.getElementById('tabLoginBtn').classList.remove('active');
+            document.getElementById('authCardTitle').textContent = '註冊新帳號';
+            document.getElementById('authSubmitBtn').textContent = '註冊新帳號';
+        }
+
+        function handleEmailAuth() {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value.trim();
+
+            if (!email || !password) {
+                alert('請完整輸入電子郵件與密碼！');
+                return;
+            }
+
+            if (currentAuthMode === 'login') {
+                auth.signInWithEmailAndPassword(email, password)
+                    .catch(error => alert(`登入失敗: ${error.message}`));
+            } else {
+                auth.createUserWithEmailAndPassword(email, password)
+                    .catch(error => alert(`註冊失敗: ${error.message}`));
+            }
+        }
+
+        function handleGoogleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => {
+                alert(`Google 登入失敗: ${error.message}`);
+            });
+        }
+
+        function handleLogout() {
+            auth.signOut().catch(error => console.error("登出發生錯誤", error));
+        }
+
+        auth.onAuthStateChanged((user) => {
+            const loginOverlay = document.getElementById('loginOverlay');
+            const appContainer = document.getElementById('appContainer');
+            const profileName = document.getElementById('profileName');
+            const profileEmail = document.getElementById('profileEmail');
+            const profileAvatar = document.getElementById('profileAvatar');
+
+            if (user) {
+                loginOverlay.style.display = 'none';
+                appContainer.style.display = 'block';
+                profileName.textContent = user.displayName || user.email.split('@')[0] || '社群成員';
+                profileEmail.textContent = user.email || '已驗證帳號';
+                if (profileName.textContent) {
+                    profileAvatar.textContent = profileName.textContent.charAt(0).toUpperCase();
+                }
+                loadUserPosts();
+            } else {
+                loginOverlay.style.display = 'flex';
+                appContainer.style.display = 'none';
+            }
+            loadPostsFeed();
+        });
 
         function setCookie(name, value, days) {
             const date = new Date();
@@ -422,43 +598,6 @@
             }
         }
 
-        function handleAuth() {
-            const user = auth.currentUser;
-            if (!user) {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                auth.signInWithPopup(provider).catch((error) => {
-                    alert(`登入失敗: ${error.message}`);
-                });
-            } else {
-                auth.signOut().catch((error) => {
-                    console.error("登出發生錯誤", error);
-                });
-            }
-        }
-
-        auth.onAuthStateChanged((user) => {
-            const loginOverlay = document.getElementById('loginOverlay');
-            const appContainer = document.getElementById('appContainer');
-            const profileName = document.getElementById('profileName');
-            const profileEmail = document.getElementById('profileEmail');
-            const profileAvatar = document.getElementById('profileAvatar');
-
-            if (user) {
-                loginOverlay.style.display = 'none';
-                appContainer.style.display = 'block';
-                profileName.textContent = user.displayName || '社群成員';
-                profileEmail.textContent = user.email || '已驗證 Google 帳號';
-                if (user.displayName) {
-                    profileAvatar.textContent = user.displayName.charAt(0).toUpperCase();
-                }
-                loadUserPosts();
-            } else {
-                loginOverlay.style.display = 'flex';
-                appContainer.style.display = 'none';
-            }
-            loadPostsFeed();
-        });
-
         function switchView(viewName) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
@@ -484,7 +623,7 @@
             }
 
             const user = auth.currentUser;
-            const authorName = user ? user.displayName : '訪客';
+            const authorName = user ? (user.displayName || user.email.split('@')[0]) : '訪客';
 
             const newPostObj = {
                 author: authorName,
@@ -532,7 +671,7 @@
             let posts = JSON.parse(localStorage.getItem('social_posts') || '[]');
             const user = auth.currentUser;
             if (!user) return;
-            const userName = user.displayName;
+            const userName = user.displayName || user.email.split('@')[0];
 
             let userPosts = posts.filter(p => p.author === userName);
 
