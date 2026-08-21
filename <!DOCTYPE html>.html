@@ -38,7 +38,6 @@
             transition: background 0.3s, color 0.3s;
         }
 
-        /* 質感登入遮罩畫面 */
         #loginOverlay {
             display: flex;
             justify-content: center;
@@ -73,7 +72,6 @@
             font-size: 20px;
             color: #f2f3f5;
         }
-        /* 登入 / 註冊 切換分頁 */
         .auth-tabs {
             display: flex;
             background-color: #111214;
@@ -176,7 +174,6 @@
             text-align: center;
         }
 
-        /* 主應用程式介面 (登入後解鎖) */
         #appContainer {
             display: none;
             max-width: 680px;
@@ -358,7 +355,6 @@
 </head>
 <body>
 
-    <!-- 質感登入/註冊模態框 -->
     <div id="loginOverlay">
         <div class="login-card">
             <div class="login-header-title">Player Access</div>
@@ -366,13 +362,11 @@
                 <h2 id="authCardTitle">登入帳號</h2>
             </div>
 
-            <!-- 切換分頁 -->
             <div class="auth-tabs">
                 <div id="tabLoginBtn" class="auth-tab active" onclick="switchAuthTab('login')">登入</div>
                 <div id="tabRegisterBtn" class="auth-tab" onclick="switchRegisterTab('register')">註冊</div>
             </div>
 
-            <!-- 表單內容 -->
             <div class="auth-form-group">
                 <label>電子郵件</label>
                 <input type="text" id="authEmail" placeholder="name@example.com">
@@ -385,7 +379,6 @@
 
             <div class="divider"><span>或使用第三方帳號</span></div>
 
-            <!-- 第三方登入按鈕 -->
             <div class="social-login-group">
                 <button class="social-btn" onclick="handleGoogleLogin()">Google</button>
                 <button class="social-btn" onclick="alert('Discord 登入串接中...')">Discord</button>
@@ -397,7 +390,6 @@
         </div>
     </div>
 
-    <!-- 登入後的主應用程式畫面 (800行完整功能) -->
     <div id="appContainer" class="container">
         <header>
             <h1>看社交</h1>
@@ -486,7 +478,7 @@
         }
         
         const auth = firebase.auth();
-        let currentAuthMode = 'login'; // 'login' 或 'register'
+        let currentAuthMode = 'login';
 
         function switchAuthTab(mode) {
             currentAuthMode = 'login';
