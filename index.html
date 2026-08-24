@@ -475,7 +475,6 @@
     </div>
 
     <script>
-        // 已帶入您的真實 Firebase 專案設定
         const firebaseConfig = {
             apiKey: "AIzaSyDnf-e8BYtHKkqMGKLPl6-tCzh9SZHwGIE",
             authDomain: "my-social-app-74cb5.firebaseapp.com",
@@ -527,10 +526,10 @@
             }
         }
 
-        // Google 第三方登入函式
+        // 改用頁面重新導向登入，徹底解決彈跳視窗被阻擋的問題
         function handleGoogleLogin() {
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(error => {
+            auth.signInWithRedirect(provider).catch(error => {
                 alert(`Google 登入失敗: ${error.message}`);
             });
         }
