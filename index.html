@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>看社交 - 完整社群平台與多元登入</title>
-    <!-- Firebase SDK 9/10 相容版本 (Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore-compat.js"></script>
+    <!-- 修正為正確的 Firebase SDK 版本 (10.8.0) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     
     <style>
         :root {
@@ -526,7 +526,6 @@
             }
         }
 
-        // 改用頁面重新導向登入，徹底解決彈跳視窗被阻擋的問題
         function handleGoogleLogin() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithRedirect(provider).catch(error => {
